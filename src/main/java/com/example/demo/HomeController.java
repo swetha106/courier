@@ -20,20 +20,23 @@ public class HomeController {
 	@RequestMapping("/")
     public String home(Map<String, Object> model) {
         model.put("message", "HowToDoInJava Reader !!");
-        return "home";
+        return "groceryhome";
 	}
 	
 	
 	@RequestMapping("/add")
 	public String add(){
-		return "adminlogin";
+		return "addpro";
 	}    
 	
-	
+	@RequestMapping("/remove")
+	public String remove() {
+		return "remove";
+	}
 	
 	@RequestMapping("/edit")
 	public String edit() {
-		return "admin";
+		return "edits";
 	}
 	
 	@RequestMapping("/update")
@@ -41,7 +44,15 @@ public class HomeController {
 		return "update";
 	}
 	
-	
+	@RequestMapping("/rem")
+	public String mess(HttpServletRequest req , HttpServletResponse res) {
+		String m=req.getParameter("product_name");
+		System.out.print(m);
+		
+		jdbc.execute("delete from gst.product_details where product_name='"+m+"'");
+		System.out.println("delete success");
+		return "remove"; 
+	}
 	
 	@RequestMapping("/upd")
 	public String upd(HttpServletRequest req, HttpServletResponse res) {
@@ -59,24 +70,62 @@ public class HomeController {
 		return "success";
 	}
 	
-	@RequestMapping("/ul")
-	public String view() {
-		return "userlogin";
-    }
-    @RequestMapping("/to")
-	public String view() {
-		return "tracking";
+	
+    @RequestMapping("/insert")  
+    public String index(HttpServletRequest req, HttpServletResponse res){  
+    	System.out.println("heloo");
+    	String name=req.getParameter("product_name");
+    	String code=req.getParameter("product_code");
+    	String rate=req.getParameter("rate");
+    	String tax=req.getParameter("gst%");
+        jdbc.execute("insert into gst.product_details values('code','name',rate,tax)"
+        		.replace("code", code).replace("name", name)
+        		.replace("rate",rate).replace("tax",tax));
+        System.out.println("Added succesfully");
+        return "groceryhome";  
+    } 
+    
+    @RequestMapping("/billadd")
+    public String billadd(HttpServletRequest req, HttpServletResponse res) {
+    	String name=req.getParameter("name");
+    	String code=req.getParameter("code");
+    	String rate=req.getParameter("rate");
+    	String tax=req.getParameter("gst");
+    	String quantity=req.getParameter("quantity");
+    	 
+    	double q=Double.parseDouble(quantity);
+    	double r=Double.parseDouble(rate);
+    	double t=Double.parseDouble(tax); 
+    	double billamount=q*r+(q*r*t/100);
+    	  
+    	DecimalFormat df2 = new DecimalFormat("#.##");
+    	
+    	System.out.println(name);
+    	System.out.println(code);
+    	System.out.println(r);
+    	System.out.println(q);
+    	System.out.println(t);
+    	System.out.println(df2.format(billamount));
+    	
+    	String sql="insert into gst.bills values('code' , 'name', 'ra', 'ta', 'qua','amo')".replace("code",code)
+    			.replace("name", name).replace("qua", quantity).replace("amo",Double.toString(billamount))
+    			.replace("ra",rate).replace("ta",tax);
+    	jdbc.execute(sql);
+    	return "bills";
     }
     
-    
-    @
     @RequestMapping("/gen")
     public String generate() {
     	String sql="create table gst.bills ( Product_Code varchar(50),  Product_Name varchar(50), Rate varchar(5), "
     			+ "Tax varchar(6), Quantity varchar(5), Amount varchar(10)) ";
     	jdbc.execute(sql);
-    	return "user";
+    	return "bills";
     }
     
-  
+    @RequestMapping("/finalbill")
+    public String finals() {
+    	String QueryString = "select Amount from gst.bills";
+    	
+    	return "new bill";
+    }
 }
